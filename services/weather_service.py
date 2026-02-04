@@ -4,6 +4,6 @@ from config.database import engine
 
 
 def run():
-    hourly_df, daily_df = fetch_weather()
-    upsert_daily(engine, daily_df)
-    upsert_hourly(engine, hourly_df)
+    hourly_dataframe, daily_dataframe = fetch_weather()
+    upsert_daily(engine, daily_dataframe)
+    upsert_hourly(engine, hourly_dataframe)

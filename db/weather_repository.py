@@ -5,8 +5,7 @@ INSERT INTO daily_weather (
     date, weather_code, temperature_2m_max, temperature_2m_min,
     apparent_temperature_max, apparent_temperature_min,
     rain_sum, snowfall_sum, showers_sum,
-    precipitation_sum, precipitation_hours,
-    precipitation_probability_max,
+    precipitation_sum, precipitation_probability_max,
     wind_gusts_10m_max, wind_speed_10m_max
 )
 VALUES %s
@@ -18,19 +17,28 @@ ON CONFLICT (date) DO UPDATE SET
     apparent_temperature_min = EXCLUDED.apparent_temperature_min,
     rain_sum = EXCLUDED.rain_sum,
     snowfall_sum = EXCLUDED.snowfall_sum,
+    showers_sum = EXCLUDED.showers_sum,
     precipitation_sum = EXCLUDED.precipitation_sum,
-    wind_speed_10m_max = EXCLUDED.wind_speed_10m_max;
+    precipitation_probability_max = EXCLUDED.precipitation_probability_max,
+    wind_gusts_10m_max = EXCLUDED.wind_gusts_10m_max,
+    wind_speed_10m_max = EXCLUDED.wind_speed_10m_max
 """
 
 SQL_HOURLY_UPSERT = """
 INSERT INTO hourly_weather (
-    date, temperature_2m, rain, snowfall
+    date, temperature_2m, relative_humidity_2m, dew_point_2m, apparent_temperature, 
+    precipitation, rain, snowfall, weather_code
 )
 VALUES %s
 ON CONFLICT (date) DO UPDATE SET
+    weather_code = EXCLUDED.weather_code,
     temperature_2m = EXCLUDED.temperature_2m,
+    relative_humidity_2m = EXCLUDED.relative_humidity_2m,
+    dew_point_2m = EXCLUDED.dew_point_2m,
+    apparent_temperature = EXCLUDED.apparent_temperature,
+    precipitation = EXCLUDED.precipitation,
     rain = EXCLUDED.rain,
-    snowfall = EXCLUDED.snowfall;
+    snowfall = EXCLUDED.snowfall
 """
 
 
