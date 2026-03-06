@@ -12,8 +12,6 @@ def fetch_velib_stations():
     cache_session = requests_cache.CachedSession('.cache', expire_after=3600)
     retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
 
-    print("Fetching Velib data...")
-
     try:
         response = retry_session.get(STATUS_URL, timeout=10)  # Timeout de 10 secondes
         response.raise_for_status()  # Vérifier les erreurs HTTP
@@ -27,31 +25,42 @@ def fetch_velib_stations():
     # Process the data as needed
     # For example, you can convert it to a DataFrame
 
-    print("✓ Data fetched successfully!")
     stations_data = data['data']['stations']
-    df = pd.DataFrame(stations_data)
-    df['last_reported'] = pd.to_datetime(df['last_reported'], unit='s').dt.strftime('%d-%m-%Y')
-    df['date'] = pd.Timestamp.today().strftime('%d-%m-%Y')
+    df_stations = pd.DataFrame(stations_data)
+    df_stations['last_reported'] = pd.to_datetime(df_stations['last_reported'], unit='s')
+    # df_stations['recorded_at'] = pd.to_datetime(df_stations['recorded_at'], unit='s')
+    df_stations['date'] = pd.Timestamp.today().strftime('%Y-%m-%d')
     # Supprimer les colonnes redondantes (camelCase)
-    df = df.drop(columns=['numBikesAvailable', 'numDocksAvailable'])
-    df = df.drop(columns=['num_bikes_available_types'])
+    df_stations = df_stations.drop(columns=['numBikesAvailable', 'numDocksAvailable'])
+    rename_mapping = {
+        'numBikesAvailable': 'num_bikes_available',
+        'numDocksAvailable': 'num_docks_available'
+    }
+    df_stations = df_stations.rename(columns={k: v for k, v in rename_mapping.items() if k in df_stations.columns})
+    df_stations = df_stations.drop(columns=['num_bikes_available_types'])
+    df_stations = df_stations.drop(columns=['stationCode'])
+
+    # Suppression de la colonne station_opening_hours qui n'est pas nécessaire pour le suivi de l'état des stations
+    # dû à un manque de données dans l'API (toutes les valeurs sont nulles)
+    df_stations = df_stations.drop(columns=['station_opening_hours'])
+
+    df_stations["is_installed"] = df_stations["is_installed"].astype(bool)
+    df_stations["is_returning"] = df_stations["is_returning"].astype(bool)
+    df_stations["is_renting"] = df_stations["is_renting"].astype(bool)
 
     # Process the num_bikes_available_types to create separate columns for each bike type
     # This is a placeholder for the actual processing logic, which will depend on the structure of num_bikes_available_types
     # C'EST A UTILSER POUR TRAITER LES TYPES DE VÉLOS DISPONIBLES, SI NÉCESSAIRE
-    # for _, row in df.iterrows():
+    # for _, row in df_stations.iterrows():
     #     for d in row['num_bikes_available_types']:
     #         bike_type, cnt = next(iter(d.items()))
     #         # INSERT into station_bike_counts …
     
-    cols = df.columns.tolist()
-    cols.insert(1, cols.pop(cols.index('stationCode')))
-    cols.insert(2, cols.pop(cols.index('date')))
-    df = df[cols]
-    # # df = df.astype('object').replace({np.nan: None})
-
-    print(df.head())  # Print the first few rows of the DataFrame
-    print(df.columns.tolist())  # Print the column names
-    # return df_stations
+    cols = df_stations.columns.tolist()
+    cols.insert(1, cols.pop(cols.index('date')))
+    df_stations = df_stations[cols]
+    # cols = df_informations.columns.tolist()
+    # print(cols)
+    return df_stations
 
 fetch_velib_stations()

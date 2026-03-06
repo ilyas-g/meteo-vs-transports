@@ -3,7 +3,7 @@ from db.weather_repository import upsert_daily, upsert_hourly
 from config.database import engine
 
 
-def run():
+def weather_run():
     hourly_dataframe, daily_dataframe = fetch_weather()
     upsert_daily(engine, daily_dataframe)
     upsert_hourly(engine, hourly_dataframe)

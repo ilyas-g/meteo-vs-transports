@@ -1,4 +1,4 @@
-from services.weather_service import run
+from services.velib_service import velib_run
 
 if __name__ == "__main__":
-    run()
+    velib_run()
