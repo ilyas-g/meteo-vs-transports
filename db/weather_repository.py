@@ -49,6 +49,7 @@ def upsert_daily(engine, daily_df):
         data = [tuple(row) for row in daily_df.itertuples(index=False, name=None)]
         execute_values(cursor, SQL_DAILY_UPSERT, data)
         conn.commit()
+        print("✓ Data daily weather fetched successfully!")
     except Exception:
         conn.rollback()
         raise
@@ -71,6 +72,7 @@ def upsert_hourly(engine, hourly_df):
     try:
         execute_values(cursor, SQL_HOURLY_UPSERT, hourly_df.to_records(index=False))
         conn.commit()
+        print("✓ Data hourly weather fetched successfully!")
     except Exception:
         conn.rollback()
         raise

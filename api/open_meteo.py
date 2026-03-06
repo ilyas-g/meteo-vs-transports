@@ -64,7 +64,7 @@ def fetch_weather():
     hourly_dataframe = pd.DataFrame(data = hourly_data)
     # Remplacer les NaN par None pour PostgreSQL
     hourly_dataframe = hourly_dataframe.astype('object').replace({np.nan: None})
-    print("\nHourly data\n", hourly_dataframe)
+    # print("\nHourly data\n", hourly_dataframe)
 
     # ---------- DAILY ----------
     daily = response.Daily()
