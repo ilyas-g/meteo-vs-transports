@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.10
 # Use an official Python runtime as a parent image
 
 LABEL "Build de l'application meteo-vs-transports"

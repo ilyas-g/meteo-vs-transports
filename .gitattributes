@@ -1,0 +1,11 @@
+# Par défaut
+* text=auto eol=lf
+
+# Scripts critiques
+*.sh text eol=lf
+Dockerfile text eol=lf
+
+# Binaires
+*.png binary
+*.jpg binary
+*.zip binary

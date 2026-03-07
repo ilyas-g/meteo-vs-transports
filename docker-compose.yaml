@@ -1,0 +1,31 @@
+# EXEMPLE DE DOCKER-COMPOSE.YAML (NON FONCTIONNEL POUR LE MOMENT)
+
+services:
+  fastapi:
+    # Service name
+    build:
+      # Build the image from the Dockerfile in the current directory
+      context: . # Use the current directory as the build context
+      dockerfile: Dockerfile # Use the Dockerfile in the current directory
+    ports:
+      - "8080:8000" # Map port 8000 in the container to port 8080 on the host
+    depends_on:
+      - redis # Wait for the redis service to be ready before starting this service
+      - postgres # Wait for the postgres service to be ready before starting this service
+
+  redis:
+    image: redis/redis-stack:latest # Use the latest Redis image from Docker Hub
+    ports:
+      - "8001:8001"  # Map port 8001 in the container to port 8001 on the host 
+    expose: 
+      - "6379" # Expose Redis port 6379 to other services in the same network
+  postgres:
+    image: postgres:latest # Use the latest PostgreSQL image from Docker Hub
+    environment:
+      POSTGRES_USER: user # Set the PostgreSQL user
+      POSTGRES_PASSWORD: password # Set the PostgreSQL password
+      POSTGRES_DB: mydatabase # Set the PostgreSQL database name
+    ports:
+      - "5432:5432" # Map port 5432 in the container to port 5432 on the host
+    volumes:
+      - pgdata:/var/lib/postgresql/data # Persist PostgreSQL data
