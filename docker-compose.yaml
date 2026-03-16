@@ -1,24 +1,6 @@
 # EXEMPLE DE DOCKER-COMPOSE.YAML (NON FONCTIONNEL POUR LE MOMENT)
 
 services:
-  fastapi:
-    # Service name
-    build:
-      # Build the image from the Dockerfile in the current directory
-      context: . # Use the current directory as the build context
-      dockerfile: Dockerfile # Use the Dockerfile in the current directory
-    ports:
-      - "8080:8000" # Map port 8000 in the container to port 8080 on the host
-    depends_on:
-      - redis # Wait for the redis service to be ready before starting this service
-      - postgres # Wait for the postgres service to be ready before starting this service
-
-  redis:
-    image: redis/redis-stack:latest # Use the latest Redis image from Docker Hub
-    ports:
-      - "8001:8001"  # Map port 8001 in the container to port 8001 on the host 
-    expose: 
-      - "6379" # Expose Redis port 6379 to other services in the same network
   postgres:
     image: postgres:latest # Use the latest PostgreSQL image from Docker Hub
     environment:
@@ -29,3 +11,60 @@ services:
       - "5432:5432" # Map port 5432 in the container to port 5432 on the host
     volumes:
       - pgdata:/var/lib/postgresql/data # Persist PostgreSQL data
+
+  airflow-init:
+    image: apache/airflow:2.9.3
+    depends_on:
+      - postgres
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://user:password@postgres/mydatabase
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow_logs:/opt/airflow/logs
+    command: >
+      bash -c "
+      airflow db init &&
+      airflow users create
+        --username admin
+        --password admin
+        --firstname admin
+        --lastname admin
+        --role Admin
+        --email admin@example.com
+      "
+
+  airflow-webserver:
+    image: apache/airflow:2.9.3
+    restart: always
+    depends_on:
+      - postgres
+      - airflow-init
+    ports:
+      - "8081:8080" # Map port 8080 in the container to port 8081 on the host
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow_logs:/opt/airflow/logs
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://user:password@postgres/mydatabase
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+    command: webserver
+
+  airflow-scheduler:
+    image: apache/airflow:2.9.3
+    restart: always
+    depends_on:
+      - postgres
+      - airflow-init
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow_logs:/opt/airflow/logs
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://user:password@postgres/mydatabase
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+    command: scheduler
+volumes:
+  pgdata: # Define a named volume for PostgreSQL data persistence

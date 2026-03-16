@@ -1,5 +1,5 @@
-from api.velib_metropole_informations import fetch_velib_informations
-from api.velib_metropole_stations import fetch_velib_stations
+from src.velib_metropole_informations import fetch_velib_informations
+from src.velib_metropole_stations import fetch_velib_stations
 from db.velib_repository import upsert_stations, upsert_informations
 from config.database import engine
 

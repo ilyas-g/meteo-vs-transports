@@ -1,4 +1,4 @@
-from api.open_meteo import fetch_weather
+from src.open_meteo import fetch_weather
 from db.weather_repository import upsert_daily, upsert_hourly
 from config.database import engine
 
