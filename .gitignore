@@ -4,5 +4,6 @@
 db/**.sql
 **/mvstenv/
 *.log
+airflow_logs/
 __pycache__
 .git
