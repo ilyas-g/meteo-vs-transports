@@ -1,3 +1,14 @@
+x-airflow-common: &airflow-common
+  build: .
+  env_file:
+    - .env
+  volumes:
+    - ./airflow/dags:/opt/airflow/dags
+    - ./airflow_logs:/opt/airflow/logs
+  depends_on:
+    postgres:
+      condition: service_healthy
+
 services:
   postgres:
     image: postgres:15
@@ -10,52 +21,49 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      retries: 5
+      timeout: 5s
 
   airflow-init:
-    build: .
-    depends_on:
-      - postgres
-    env_file:
-      - .env
+    <<: *airflow-common
     command: >
-      bash -c "airflow db init && airflow users create --username ${AIRFLOW_ADMIN_USERNAME} --password ${AIRFLOW_ADMIN_PASSWORD} --firstname Admin --lastname User --role Admin --email ${AIRFLOW_ADMIN_EMAIL}"
-    volumes:
-      - ./airflow/dags:/opt/airflow/dags
-      - ./airflow_logs:/opt/airflow/logs
+      bash -c "
+      airflow db migrate &&
+      airflow users create
+        --username ${AIRFLOW_ADMIN_USERNAME}
+        --password ${AIRFLOW_ADMIN_PASSWORD}
+        --firstname Admin
+        --lastname User
+        --role Admin
+        --email ${AIRFLOW_ADMIN_EMAIL} || true
+      "
+    restart: "no"
 
   airflow-webserver:
-    build: .
-    restart: always
-    depends_on:
-      - postgres
-      - airflow-init
-    env_file:
-      - .env
+    <<: *airflow-common
+    command: webserver
     ports:
       - "8081:8080"
-    command: webserver
-    volumes:
-      - ./airflow/dags:/opt/airflow/dags
-      - ./airflow_logs:/opt/airflow/logs
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
 
   airflow-scheduler:
-    build: .
-    restart: always
-    depends_on:
-      - postgres
-      - airflow-init
-    env_file:
-      - .env
+    <<: *airflow-common
     command: scheduler
-    volumes:
-      - ./airflow/dags:/opt/airflow/dags
-      - ./airflow_logs:/opt/airflow/logs
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
 
   fastapi:
     build: .
     restart: always
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     env_file:
       - .env
     command: uvicorn src.main:app --host 0.0.0.0 --port 8000

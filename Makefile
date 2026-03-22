@@ -1,19 +1,19 @@
 up:
-	@echo "🚀 Lancement de l'environnement Docker..."
+	@echo "🚀 Lancement..."
 	@docker compose up -d
 
-	@echo "⏳ Vérification des services..."
-	@sleep 5
-
-	@docker compose ps
+	@echo "⏳ Attente Airflow..."
+	@until curl -s http://localhost:8081 > /dev/null; do \
+		sleep 2; \
+	done
 
 	@echo ""
 	@echo "✅ Environnement prêt !"
-	@echo "➡ Airflow : http://localhost:8081"
-	@echo "➡ FastAPI : http://localhost:8000"
+	@echo "✅ Airflow prêt : http://localhost:8081"
+	@echo "✅ FastAPI prêt : http://localhost:8000"
 
 down:
-	docker compose down
+	@docker compose down
 
 logs:
-	docker compose logs -f
+	@docker compose logs -f
