@@ -31,3 +31,14 @@ docker ps -a
 docker compose logs airflow-webserver
     Affiche les logs du conteneur 'airflow-webserver' pour vérifier le démarrage, 
     le chargement des DAGs et d’éventuelles erreurs.
+
+docker exec -it meteo-vs-transports-postgres-1 bash
+    Ouvre un terminal pour voir le container meteo-vs-transports-postgres-1
+
+psql -U $POSTGRES_USER -d $POSTGRES_DB
+    Commande pour lancer le client POSTGRES avec les éléments liés à la bdd (Voir .env)
+
+docker compose down -v
+    Le -v est permet de :
+    supprimer le volume pgdata
+    donc supprimer l’ancienne DB
