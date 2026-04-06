@@ -42,3 +42,6 @@ docker compose down -v
     Le -v est permet de :
     supprimer le volume pgdata
     donc supprimer l’ancienne DB
+
+docker volume ls
+    Vérifie les volumes
