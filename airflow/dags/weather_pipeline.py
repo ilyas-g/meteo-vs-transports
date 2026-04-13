@@ -13,19 +13,14 @@ def weather_pipeline():
         return fetch_weather_raw()
 
     @task
-    def transform(response):
+    def transform_and_load(response):
         hourly = process_hourly(response)
         daily = process_daily(response)
-        return {"hourly": hourly, "daily": daily}
 
+        load_to_postgres(hourly, "hourly_weather", engine)
+        load_to_postgres(daily, "daily_weather", engine)
 
-    @task
-    def load_to_db(cleaned_data):
-        load_to_postgres(cleaned_data["hourly"], "hourly_weather", engine)
-        load_to_postgres(cleaned_data["daily"], "daily_weather", engine)
-
-    extractedDatas = extract()
-    cleanedDatas = transform(extractedDatas)
-    load_to_db(cleanedDatas)
+        extractedDatas = extract()
+        transform_and_load(extractedDatas)
 
 pipeline = weather_pipeline()
